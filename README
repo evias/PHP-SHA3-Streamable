@@ -1,0 +1,39 @@
+Streamable SHA-3 in pure PHP!
+
+* SHA3-224
+* SHA3-256 (for 128-bit security like SHA2-256)
+* SHA3-384
+* SHA3-512 (for 256-bit security like SHA2-512)
+
+Unbounded output:
+* SHAKE128 (Use at least 256 bits of output for 128-bit security)
+* SHAKE256 (Use at least 512 bits of output for 256-bit security)
+
+Amazingly, PHP 5.2 (EOL in January 2011) as well as PHP 7.0 is supported.
+Please report if you find a problem.
+Note that SHA-3 is considably slower than SHA-2 in *software*, not to mention
+PHP's notable slowness. PHP 7.0 is 4x the speed of PHP 5.6.
+TODO: Optimize for speed, while defending against timing attacks
+
+Usage:
+$shake128 = SHA3::init (SHA3::SHAKE128);
+$shake128->absorb ('The quick brown fox ');
+$shake128->absorb ('jumps over the lazy dog');
+// Squeeze 256 bits of hash output!
+echo bin2hex ($shake128->squeeze (32)) . PHP_EOL;
+// f4202e3c5852f9182a0430fd8144f0a74b95e7417ecae17db0f8cfeed0e3e66e
+// more output possible
+
+
+README:
+Copyright (C) 2016 Desktopd Developers
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+
+PHP-SHA3-Streamable is free software. The library (the file SHA3.php) is under
+GNU LGPL version 3 or later. Other codes are under GNU GPL version 3 or later.
+See the files COPYING.LGPL (GNU LGPL) and COPYING (GNU GPL) for copying
+conditions.
