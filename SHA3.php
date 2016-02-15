@@ -180,7 +180,7 @@ class SHA3 {
 			&& $this->blockSize == ($rateInBytes - 1)) {
 			$this->state = self::keccakF1600Permute ($this->state);
 		}
-		$this->state[$rateInBytes - 1] = $this->state[$rateInBytes - 1] ^ chr (0x80);
+		$this->state[$rateInBytes - 1] = $this->state[$rateInBytes - 1] ^ "\x80";
 		$this->state = self::keccakF1600Permute ($this->state);
 	}
 	
@@ -260,17 +260,17 @@ class SHA3 {
 			}
 		}
 		
-		return implode ('', $lanes);
+		return implode ($lanes);
 	}
 	
 	/**
 		64-bit bitwise left rotation (Little endian)
 	*/
 	protected static function rotL64 ($n, $offset) {
-		$n = (binary) $n;
-		$offset = ((int) $offset) % 64;
-		if (8 != strlen ($n)) throw new Exception ('Invalid number');
-		if ($offset < 0) throw new Exception ('Invalid offset');
+		//$n = (binary) $n;
+		//$offset = ((int) $offset) % 64;
+		//if (8 != strlen ($n)) throw new Exception ('Invalid number');
+		//if ($offset < 0) throw new Exception ('Invalid offset');
 		
 		$shift = $offset % 8;
 		$octetShift = ($offset - $shift) / 8;
