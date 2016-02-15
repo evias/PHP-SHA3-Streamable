@@ -18,7 +18,7 @@ vim: ts=4 noet ai */
 
 	You should have received a copy of the GNU Lesser General Public License
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
-	
+
 	@license LGPL-3+
 	@file
 */
@@ -30,6 +30,9 @@ vim: ts=4 noet ai */
 	
 	Based on the reference implementations, which are under CC-0
 	Reference: http://keccak.noekeon.org/
+	
+	This uses PHP's native byte strings. Supports 32-bit as well as 64-bit
+	systems. Also for LE vs. BE systems.
 */
 class SHA3 {
 	const SHA3_224 = 1;
@@ -200,7 +203,7 @@ class SHA3 {
 		1600-bit state version of Keccak's permutation
 	*/
 	protected static function keccakF1600Permute ($state) {
-		$lanes = array_reverse (str_split (strrev ($state), 8)); // LE -> BE
+		$lanes = str_split ($state, 8);
 		$R = 1;
 		
 		for ($round = 0; $round < 24; $round++) {
@@ -252,16 +255,16 @@ class SHA3 {
 				$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
 				if ($R & 2) {
 					$lanes[0] = $lanes[0]
-						^ self::rotL64 ("\0\0\0\0\0\0\0\1", (1 << $j) - 1);
+						^ self::rotL64 ("\1\0\0\0\0\0\0\0", (1 << $j) - 1);
 				}
 			}
 		}
 		
-		return strrev (implode ('', array_reverse ($lanes))); // BE -> LE
+		return implode ('', $lanes);
 	}
 	
 	/**
-		64-bit bitwise left rotation (Big endian)
+		64-bit bitwise left rotation (Little endian)
 	*/
 	protected static function rotL64 ($n, $offset) {
 		$n = (binary) $n;
@@ -271,15 +274,15 @@ class SHA3 {
 		
 		$shift = $offset % 8;
 		$octetShift = ($offset - $shift) / 8;
-		$n = substr ($n, $octetShift) . substr ($n, 0, $octetShift);
+		$n = substr ($n, - $octetShift) . substr ($n, 0, - $octetShift);
 		
 		$overflow = 0x00;
-		for ($i = 7; $i >= 0; $i--) {
+		for ($i = 0; $i < 8; $i++) {
 			$a = ord ($n[$i]) << $shift;
 			$n[$i] = chr (0xff & $a | $overflow);
 			$overflow = $a >> 8;
 		}
-		$n[7] = chr (ord ($n[7]) | $overflow);
+		$n[0] = chr (ord ($n[0]) | $overflow);
 		return $n;
 	}
 }
