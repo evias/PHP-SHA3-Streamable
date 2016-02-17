@@ -205,6 +205,7 @@ class SHA3 {
 	protected static function keccakF1600Permute ($state) {
 		$lanes = str_split ($state, 8);
 		$R = 1;
+		$values = "\1\2\4\10\20\40\100\200";
 		
 		for ($round = 0; $round < 24; $round++) {
 			// θ step
@@ -216,6 +217,7 @@ class SHA3 {
 			}
 			for ($x = 0; $x < 5; $x++) {
 				$D = $C[($x + 4) % 5] ^ self::rotL64 ($C[($x + 1) % 5], 1);
+				//$D = $C[($x + 4) % 5] ^ self::rotL64One ($C[($x + 1) % 5]);
 				for ($y = 0; $y < 5; $y++) {
 					$idx = $x + 5 * $y; // x, y
 					$lanes[$idx] = $lanes[$idx] ^ $D;
@@ -254,8 +256,15 @@ class SHA3 {
 			for ($j = 0; $j < 7; $j++) {
 				$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
 				if ($R & 2) {
+					$offset = (1 << $j) - 1;
+					$shift = $offset % 8;
+					$octetShift = ($offset - $shift) / 8;
+					$n = "\0\0\0\0\0\0\0\0";
+					$n[$octetShift] = $values[$shift];
+					
 					$lanes[0] = $lanes[0]
-						^ self::rotL64 ("\1\0\0\0\0\0\0\0", (1 << $j) - 1);
+						^ $n;
+						//^ self::rotL64 ("\1\0\0\0\0\0\0\0", (1 << $j) - 1);
 				}
 			}
 		}
@@ -283,6 +292,23 @@ class SHA3 {
 			$overflow = $a >> 8;
 		}
 		$n[0] = chr (ord ($n[0]) | $overflow);
+		return $n;
+	}
+	
+	/**
+		64-bit bitwise left rotation (Little endian)
+	*/
+	protected static function rotL64One ($n) {
+		list ($n[0], $n[1], $n[2], $n[3], $n[4], $n[5], $n[6], $n[7])
+			= array (
+				chr (((ord ($n[0]) << 1) & 0xff) ^ (ord ($n[7]) >> 7))
+				,chr (((ord ($n[1]) << 1) & 0xff) ^ (ord ($n[0]) >> 7))
+				,chr (((ord ($n[2]) << 1) & 0xff) ^ (ord ($n[1]) >> 7))
+				,chr (((ord ($n[3]) << 1) & 0xff) ^ (ord ($n[2]) >> 7))
+				,chr (((ord ($n[4]) << 1) & 0xff) ^ (ord ($n[3]) >> 7))
+				,chr (((ord ($n[5]) << 1) & 0xff) ^ (ord ($n[4]) >> 7))
+				,chr (((ord ($n[6]) << 1) & 0xff) ^ (ord ($n[5]) >> 7))
+				,chr (((ord ($n[7]) << 1) & 0xff) ^ (ord ($n[6]) >> 7)));
 		return $n;
 	}
 }
