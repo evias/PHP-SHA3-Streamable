@@ -30,10 +30,10 @@ use Exception;
 /**
 	SHA-3 (FIPS-202) for PHP strings (byte arrays) (PHP 5.3+)
 	PHP 7.0 computes SHA-3 about 4 times faster than PHP 5.2 - 5.6 (on x86_64)
-	
+
 	Based on the reference implementations, which are under CC-0
 	Reference: http://keccak.noekeon.org/
-	
+
 	This uses PHP's native byte strings. Supports 32-bit as well as 64-bit
 	systems. Also for LE vs. BE systems.
 */
@@ -147,7 +147,7 @@ class Sponge {
 		if (1600 != ($rate + $capacity)) {
 			throw new Error ('Invalid parameters');
 		}
-		if (0 != ($rate % 8)) {
+		if (0 != ($rate & 7)) {
 			throw new Error ('Invalid rate');
 		}
 		
@@ -208,109 +208,448 @@ class Sponge {
 	protected static function keccakF1600Permute ($state) {
 		$lanes = str_split ($state, 8);
 		$R = 1;
-		$values = "\1\2\4\10\20\40\100\200";
 		
-		for ($round = 0; $round < 24; $round++) {
+		for ($round = 0; $round < 24; ++$round) {
 			// θ step
-			$C = array ();
-			for ($x = 0; $x < 5; $x++) {
-				// (x, 0) (x, 1) (x, 2) (x, 3) (x, 4)
-				$C[$x] = $lanes[$x] ^ $lanes[$x + 5] ^ $lanes[$x + 10]
-					^ $lanes[$x + 15] ^ $lanes[$x + 20];
-			}
-			for ($x = 0; $x < 5; $x++) {
-				//$D = $C[($x + 4) % 5] ^ self::rotL64 ($C[($x + 1) % 5], 1);
-				$D = $C[($x + 4) % 5] ^ self::rotL64One ($C[($x + 1) % 5]);
-				for ($y = 0; $y < 5; $y++) {
-					$idx = $x + 5 * $y; // x, y
-					$lanes[$idx] = $lanes[$idx] ^ $D;
-				}
-			}
+			$C = array (
+				$lanes[0] ^ $lanes[5] ^ $lanes[10] ^ $lanes[15] ^ $lanes[20]
+				,$lanes[1] ^ $lanes[6] ^ $lanes[11] ^ $lanes[16] ^ $lanes[21]
+				,$lanes[2] ^ $lanes[7] ^ $lanes[12] ^ $lanes[17] ^ $lanes[22]
+				,$lanes[3] ^ $lanes[8] ^ $lanes[13] ^ $lanes[18] ^ $lanes[23]
+				,$lanes[4] ^ $lanes[9] ^ $lanes[14] ^ $lanes[19] ^ $lanes[24]);
+			
+			$n = $C[1];
+			$D = $C[4] ^ (
+				chr (((ord ($n[0]) << 1) & 0xff) ^ (ord ($n[7]) >> 7))
+				.chr (((ord ($n[1]) << 1) & 0xff) ^ (ord ($n[0]) >> 7))
+				.chr (((ord ($n[2]) << 1) & 0xff) ^ (ord ($n[1]) >> 7))
+				.chr (((ord ($n[3]) << 1) & 0xff) ^ (ord ($n[2]) >> 7))
+				.chr (((ord ($n[4]) << 1) & 0xff) ^ (ord ($n[3]) >> 7))
+				.chr (((ord ($n[5]) << 1) & 0xff) ^ (ord ($n[4]) >> 7))
+				.chr (((ord ($n[6]) << 1) & 0xff) ^ (ord ($n[5]) >> 7))
+				.chr (((ord ($n[7]) << 1) & 0xff) ^ (ord ($n[6]) >> 7)));
+			$lanes[0] ^= $D;
+			$lanes[5] ^= $D;
+			$lanes[10] ^= $D;
+			$lanes[15] ^= $D;
+			$lanes[20] ^= $D;
+			
+			$n = $C[2];
+			$D = $C[0] ^ (
+				chr (((ord ($n[0]) << 1) & 0xff) ^ (ord ($n[7]) >> 7))
+				.chr (((ord ($n[1]) << 1) & 0xff) ^ (ord ($n[0]) >> 7))
+				.chr (((ord ($n[2]) << 1) & 0xff) ^ (ord ($n[1]) >> 7))
+				.chr (((ord ($n[3]) << 1) & 0xff) ^ (ord ($n[2]) >> 7))
+				.chr (((ord ($n[4]) << 1) & 0xff) ^ (ord ($n[3]) >> 7))
+				.chr (((ord ($n[5]) << 1) & 0xff) ^ (ord ($n[4]) >> 7))
+				.chr (((ord ($n[6]) << 1) & 0xff) ^ (ord ($n[5]) >> 7))
+				.chr (((ord ($n[7]) << 1) & 0xff) ^ (ord ($n[6]) >> 7)));
+			$lanes[1] ^= $D;
+			$lanes[6] ^= $D;
+			$lanes[11] ^= $D;
+			$lanes[16] ^= $D;
+			$lanes[21] ^= $D;
+			
+			$n = $C[3];
+			$D = $C[1] ^ (
+				chr (((ord ($n[0]) << 1) & 0xff) ^ (ord ($n[7]) >> 7))
+				.chr (((ord ($n[1]) << 1) & 0xff) ^ (ord ($n[0]) >> 7))
+				.chr (((ord ($n[2]) << 1) & 0xff) ^ (ord ($n[1]) >> 7))
+				.chr (((ord ($n[3]) << 1) & 0xff) ^ (ord ($n[2]) >> 7))
+				.chr (((ord ($n[4]) << 1) & 0xff) ^ (ord ($n[3]) >> 7))
+				.chr (((ord ($n[5]) << 1) & 0xff) ^ (ord ($n[4]) >> 7))
+				.chr (((ord ($n[6]) << 1) & 0xff) ^ (ord ($n[5]) >> 7))
+				.chr (((ord ($n[7]) << 1) & 0xff) ^ (ord ($n[6]) >> 7)));
+			$lanes[2] ^= $D;
+			$lanes[7] ^= $D;
+			$lanes[12] ^= $D;
+			$lanes[17] ^= $D;
+			$lanes[22] ^= $D;
+			
+			$n = $C[4];
+			$D = $C[2] ^ (
+				chr (((ord ($n[0]) << 1) & 0xff) ^ (ord ($n[7]) >> 7))
+				.chr (((ord ($n[1]) << 1) & 0xff) ^ (ord ($n[0]) >> 7))
+				.chr (((ord ($n[2]) << 1) & 0xff) ^ (ord ($n[1]) >> 7))
+				.chr (((ord ($n[3]) << 1) & 0xff) ^ (ord ($n[2]) >> 7))
+				.chr (((ord ($n[4]) << 1) & 0xff) ^ (ord ($n[3]) >> 7))
+				.chr (((ord ($n[5]) << 1) & 0xff) ^ (ord ($n[4]) >> 7))
+				.chr (((ord ($n[6]) << 1) & 0xff) ^ (ord ($n[5]) >> 7))
+				.chr (((ord ($n[7]) << 1) & 0xff) ^ (ord ($n[6]) >> 7)));
+			$lanes[3] ^= $D;
+			$lanes[8] ^= $D;
+			$lanes[13] ^= $D;
+			$lanes[18] ^= $D;
+			$lanes[23] ^= $D;
+			
+			$n = $C[0];
+			$D = $C[3] ^ (
+				chr (((ord ($n[0]) << 1) & 0xff) ^ (ord ($n[7]) >> 7))
+				.chr (((ord ($n[1]) << 1) & 0xff) ^ (ord ($n[0]) >> 7))
+				.chr (((ord ($n[2]) << 1) & 0xff) ^ (ord ($n[1]) >> 7))
+				.chr (((ord ($n[3]) << 1) & 0xff) ^ (ord ($n[2]) >> 7))
+				.chr (((ord ($n[4]) << 1) & 0xff) ^ (ord ($n[3]) >> 7))
+				.chr (((ord ($n[5]) << 1) & 0xff) ^ (ord ($n[4]) >> 7))
+				.chr (((ord ($n[6]) << 1) & 0xff) ^ (ord ($n[5]) >> 7))
+				.chr (((ord ($n[7]) << 1) & 0xff) ^ (ord ($n[6]) >> 7)));
+			$lanes[4] ^= $D;
+			$lanes[9] ^= $D;
+			$lanes[14] ^= $D;
+			$lanes[19] ^= $D;
+			$lanes[24] ^= $D;
+			
 			unset ($C, $D);
 			
 			// ρ and π steps
-			$x = 1;
-			$y = 0;
 			$current = $lanes[1]; // x, y
-			for ($t = 0; $t < 24; $t++) {
-				list ($x, $y) = array ($y, (2 * $x + 3 * $y) % 5);
-				$idx = $x + 5 * $y;
-				list ($current, $lanes[$idx]) = array ($lanes[$idx]
-					, self::rotL64 ($current
-						, ((($t + 1) * ($t + 2)) >> 1) % 64));
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 1;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
 			}
-			unset ($temp, $current);
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[10]) = array ($lanes[10]
+				, $current);
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 3;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[7]) = array ($lanes[7]
+				, $current);
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 6;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[11]) = array ($lanes[11]
+				, $current);
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 2;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[17]) = array ($lanes[17]
+				, substr ($current, - 1)
+					. substr ($current, 0, - 1));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 7;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[18]) = array ($lanes[18]
+				, substr ($current, - 1)
+					. substr ($current, 0, - 1));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 5;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[3]) = array ($lanes[3]
+				, substr ($current, - 2)
+					. substr ($current, 0, - 2));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 4;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[5]) = array ($lanes[5]
+				, substr ($current, - 3)
+					. substr ($current, 0, - 3));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 4;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[16]) = array ($lanes[16]
+				, substr ($current, - 4)
+					. substr ($current, 0, - 4));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 5;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[8]) = array ($lanes[8]
+				, substr ($current, - 5)
+					. substr ($current, 0, - 5));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 7;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[21]) = array ($lanes[21]
+				, substr ($current, - 6)
+					. substr ($current, 0, - 6));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 2;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[24]) = array ($lanes[24]
+				, $current);
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 6;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[4]) = array ($lanes[4]
+				, substr ($current, - 1)
+					. substr ($current, 0, - 1));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 3;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[15]) = array ($lanes[15]
+				, substr ($current, - 3)
+					. substr ($current, 0, - 3));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 1;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[23]) = array ($lanes[23]
+				, substr ($current, - 5)
+					. substr ($current, 0, - 5));
+			
+			list ($current, $lanes[19]) = array ($lanes[19]
+				, substr ($current, - 7)
+					. substr ($current, 0, - 7));
+			
+			list ($current, $lanes[13]) = array ($lanes[13]
+				, substr ($current, - 1)
+					. substr ($current, 0, - 1));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 1;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[12]) = array ($lanes[12]
+				, substr ($current, - 3)
+					. substr ($current, 0, - 3));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 3;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[2]) = array ($lanes[2]
+				, substr ($current, - 5)
+					. substr ($current, 0, - 5));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 6;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[20]) = array ($lanes[20]
+				, substr ($current, - 7)
+					. substr ($current, 0, - 7));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 2;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[14]) = array ($lanes[14]
+				, substr ($current, - 2)
+					. substr ($current, 0, - 2));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 7;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[22]) = array ($lanes[22]
+				, substr ($current, - 4)
+					. substr ($current, 0, - 4));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 5;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[9]) = array ($lanes[9]
+				, substr ($current, - 7)
+					. substr ($current, 0, - 7));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 4;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[6]) = array ($lanes[6]
+				, substr ($current, - 2)
+					. substr ($current, 0, - 2));
+			
+			$overflow = 0x00;
+			for ($i = 0; $i < 8; ++$i) {
+				$a = ord ($current[$i]) << 4;
+				$current[$i] = chr (0xff & $a | $overflow);
+				$overflow = $a >> 8;
+			}
+			$current[0] = chr (ord ($current[0]) | $overflow);
+			
+			list ($current, $lanes[1]) = array ($lanes[1]
+				, substr ($current, - 5)
+					. substr ($current, 0, - 5));
+			unset ($current);
 			
 			// χ step
-			$temp = array ();
-			for ($y = 0; $y < 5; $y++) {
-				for ($x = 0; $x < 5; $x++) {
-					$temp[$x] = $lanes[$x + 5 * $y];
-				}
-				for ($x = 0; $x < 5; $x++) {
-					$lanes[$x + 5 * $y] = $temp[$x]
-						^ ((~ $temp[($x + 1) % 5]) & $temp[($x + 2) % 5]);
-					
-				}
-			}
-			unset ($temp);
+			list (
+				$lanes[0]
+				, $lanes[1]
+				, $lanes[2]
+				, $lanes[3]
+				, $lanes[4]) = array (
+				$lanes[0] ^ ((~ $lanes[1]) & $lanes[2])
+				, $lanes[1] ^ ((~ $lanes[2]) & $lanes[3])
+				, $lanes[2] ^ ((~ $lanes[3]) & $lanes[4])
+				, $lanes[3] ^ ((~ $lanes[4]) & $lanes[0])
+				, $lanes[4] ^ ((~ $lanes[0]) & $lanes[1]));
 			
-			// ι step
-			for ($j = 0; $j < 7; $j++) {
-				$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
-				if ($R & 2) {
-					$offset = (1 << $j) - 1;
-					$shift = $offset % 8;
-					//$octetShift = ($offset - $shift) >> 3;
-					$n = "\0\0\0\0\0\0\0\0";
-					$n[($offset - $shift) >> 3] = $values[$shift];
-					
-					$lanes[0] = $lanes[0]
-						^ $n;
-				}
-			}
+			list (
+				$lanes[5]
+				, $lanes[6]
+				, $lanes[7]
+				, $lanes[8]
+				, $lanes[9]) = array (
+				$lanes[5] ^ ((~ $lanes[6]) & $lanes[7])
+				, $lanes[6] ^ ((~ $lanes[7]) & $lanes[8])
+				, $lanes[7] ^ ((~ $lanes[8]) & $lanes[9])
+				, $lanes[8] ^ ((~ $lanes[9]) & $lanes[5])
+				, $lanes[9] ^ ((~ $lanes[5]) & $lanes[6]));
+			
+			list (
+				$lanes[10]
+				, $lanes[11]
+				, $lanes[12]
+				, $lanes[13]
+				, $lanes[14]) = array (
+				$lanes[10] ^ ((~ $lanes[11]) & $lanes[12])
+				, $lanes[11] ^ ((~ $lanes[12]) & $lanes[13])
+				, $lanes[12] ^ ((~ $lanes[13]) & $lanes[14])
+				, $lanes[13] ^ ((~ $lanes[14]) & $lanes[10])
+				, $lanes[14] ^ ((~ $lanes[10]) & $lanes[11]));
+			
+			list (
+				$lanes[15]
+				, $lanes[16]
+				, $lanes[17]
+				, $lanes[18]
+				, $lanes[19]) = array (
+				$lanes[15] ^ ((~ $lanes[16]) & $lanes[17])
+				, $lanes[16] ^ ((~ $lanes[17]) & $lanes[18])
+				, $lanes[17] ^ ((~ $lanes[18]) & $lanes[19])
+				, $lanes[18] ^ ((~ $lanes[19]) & $lanes[15])
+				, $lanes[19] ^ ((~ $lanes[15]) & $lanes[16]));
+			
+			list (
+				$lanes[20]
+				, $lanes[21]
+				, $lanes[22]
+				, $lanes[23]
+				, $lanes[24]) = array (
+				$lanes[20] ^ ((~ $lanes[21]) & $lanes[22])
+				, $lanes[21] ^ ((~ $lanes[22]) & $lanes[23])
+				, $lanes[22] ^ ((~ $lanes[23]) & $lanes[24])
+				, $lanes[23] ^ ((~ $lanes[24]) & $lanes[20])
+				, $lanes[24] ^ ((~ $lanes[20]) & $lanes[21]));
+			
+			// ι step (only this step differs for each round)
+			$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
+			if ($R & 2) $lanes[0][0] = $lanes[0][0] ^ "\1";
+			$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
+			if ($R & 2) $lanes[0][0] = $lanes[0][0] ^ "\2";
+			$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
+			if ($R & 2) $lanes[0][0] = $lanes[0][0] ^ "\10";
+			$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
+			if ($R & 2) $lanes[0][0] = $lanes[0][0] ^ "\200";
+			$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
+			if ($R & 2) $lanes[0][1] = $lanes[0][1] ^ "\200";
+			$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
+			if ($R & 2) $lanes[0][3] = $lanes[0][3] ^ "\200";
+			$R = (($R << 1) ^ (($R >> 7) * 0x71)) & 0xff;
+			if ($R & 2) $lanes[0][7] = $lanes[0][7] ^ "\200";
 		}
 		
 		return implode ($lanes);
-	}
-	
-	/**
-		64-bit bitwise left rotation (Little endian)
-		Should be inlined! (In PHP, method calls are very, very expensive)
-	*/
-	protected static function rotL64 ($n, $offset) {
-		//$n = (binary) $n;
-		//$offset = ((int) $offset) % 64;
-		//if (8 != strlen ($n)) throw new Exception ('Invalid number');
-		//if ($offset < 0) throw new Exception ('Invalid offset');
-		
-		$shift = $offset % 8;
-		$octetShift = ($offset - $shift) / 8;
-		$n = substr ($n, - $octetShift) . substr ($n, 0, - $octetShift);
-		
-		$overflow = 0x00;
-		for ($i = 0; $i < 8; $i++) {
-			$a = ord ($n[$i]) << $shift;
-			$n[$i] = chr (0xff & $a | $overflow);
-			$overflow = $a >> 8;
-		}
-		$n[0] = chr (ord ($n[0]) | $overflow);
-		return $n;
-	}
-	
-	/**
-		64-bit bitwise left rotation (Little endian)
-		Shuold be inlined!
-	*/
-	protected static function rotL64One ($n) {
-		return chr (((ord ($n[0]) << 1) & 0xff) ^ (ord ($n[7]) >> 7))
-			.chr (((ord ($n[1]) << 1) & 0xff) ^ (ord ($n[0]) >> 7))
-			.chr (((ord ($n[2]) << 1) & 0xff) ^ (ord ($n[1]) >> 7))
-			.chr (((ord ($n[3]) << 1) & 0xff) ^ (ord ($n[2]) >> 7))
-			.chr (((ord ($n[4]) << 1) & 0xff) ^ (ord ($n[3]) >> 7))
-			.chr (((ord ($n[5]) << 1) & 0xff) ^ (ord ($n[4]) >> 7))
-			.chr (((ord ($n[6]) << 1) & 0xff) ^ (ord ($n[5]) >> 7))
-			.chr (((ord ($n[7]) << 1) & 0xff) ^ (ord ($n[6]) >> 7));
 	}
 }
 
