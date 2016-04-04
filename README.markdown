@@ -26,7 +26,7 @@ Benchmarking result:
 **NEW: Use 64-bit PHP for best performance, because native 64-bit integers will be used. (Only supported on PHP 5.6.3 or later)** 64-bit mode is more than 4 times faster in PHP 5.6.
 
 Note that SHA-3 is considably slower than SHA-2 in *software*, not to mention
-PHP's notable slowness. PHP 7.0 is 4x the speed of PHP 5.6.
+PHP's notable slowness. PHP is only fast when your program is trivial or I/O-bound.
 
 
 ## Usage
@@ -42,6 +42,33 @@ Namespaced class `desktopd\SHA3\Sponge` is available at the `namespaced/` direct
         echo bin2hex ($sponge->squeeze ()), PHP_EOL;
         // a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26
 
+### Documentation
+`static public desktopd\SHA3\Sponge::init ($type) : desktopd\SHA3\Sponge`
+where `$type` is one of:
+
+* desktopd\SHA3\Sponge::SHA3_224
+Output: 224 bits (28 bytes)
+* desktopd\SHA3\Sponge::SHA3_256
+Output: 256 bits (32 bytes)
+* desktopd\SHA3\Sponge::SHA3_384
+Output: 384 bits (48 bytes)
+* desktopd\SHA3\Sponge::SHA3_512
+Output: 512 bits (64 bytes)
+
+* desktopd\SHA3\Sponge::SHAKE128
+Output: As much as you want (speicify the length in bytes with `squeeze()`)
+* desktopd\SHA3\Sponge::SHAKE256
+Output: As much as you want (speicify the length in bytes with `squeeze()`)
+
+
+`public desktopd\SHA3\Sponge::absorb (string $data) : desktopd\SHA3\Sponge`
+Add data to hash. You can call this as many times as you need **before calling `squeeze ()`**.
+
+
+`public desktopd\SHA3\Sponge::squeeze ([int $length]) : string`
+Get hash data. Only specify `$length` with SHAKE128 or SHAKE256. With SHAKE128 or SHAKE256, you can call this as many times as you need.
+
+
 ### PHP 5.2 (legacy)
 Use `SHA3.php` **(slower)**:
 
@@ -55,6 +82,16 @@ Use `SHA3.php` **(slower)**:
         echo bin2hex ($shake128->squeeze (32)) . PHP_EOL;
         // f4202e3c5852f9182a0430fd8144f0a74b95e7417ecae17db0f8cfeed0e3e66e
         // more output possible
+
+
+## FAQ
+### Why so slow?
+This is nearly the fastest in pure PHP. (Without depending on an extension)
+Long answer: PHP is not good at processing large binary data.
+
+### Why do you use the words 'sponge', 'absorb', or 'squeeze'?
+The terms stem from the fact that SHA-3 is based on *sponge construction*.
+Read more [here](http://sponge.noekeon.org/).
 
 
 ## Support
