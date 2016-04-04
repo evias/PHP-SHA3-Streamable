@@ -54,7 +54,6 @@ Output: 256 bits (32 bytes)
 Output: 384 bits (48 bytes)
 * desktopd\SHA3\Sponge::SHA3_512
 Output: 512 bits (64 bytes)
-
 * desktopd\SHA3\Sponge::SHAKE128
 Output: As much as you want (speicify the length in bytes with `squeeze()`)
 * desktopd\SHA3\Sponge::SHAKE256
