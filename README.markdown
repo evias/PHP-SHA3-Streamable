@@ -1,5 +1,6 @@
 # Streamable SHA-3 in pure PHP!
 
+* **Native 64-bit acceleration available** (optional)
 * SHA3-224
 * SHA3-256 (for 128-bit security like SHA2-256)
 * SHA3-384
@@ -12,10 +13,16 @@ Unbounded output:
 * SHAKE256 (Use at least 512 bits of output for 256-bit security)
 
 
-**NEW: Use 64-bit PHP for best performance, because native 64-bit integers will be used. (Only supported on PHP 5.6.3 or later)** 64-bit mode is more than 4 times faster in PHP 5.6.
-
 Amazingly, PHP 5.2 (EOL in January 2011) as well as PHP 7.0 is supported.
 Please report if you find a problem.
+
+
+## Performance
+
+Benchmarking result:
+`PHP 7.0 (64 bit) > PHP 7.0 (32 bit) > PHP 5.6.3 (64 bit) >> PHP 5.6 (32 bit) > PHP 5.2`
+
+**NEW: Use 64-bit PHP for best performance, because native 64-bit integers will be used. (Only supported on PHP 5.6.3 or later)** 64-bit mode is more than 4 times faster in PHP 5.6.
 
 Note that SHA-3 is considably slower than SHA-2 in *software*, not to mention
 PHP's notable slowness. PHP 7.0 is 4x the speed of PHP 5.6.
@@ -50,8 +57,7 @@ Use `SHA3.php` **(slower)**:
 
 
 ## TODO
-* Optimize for speed, while defending against timing attacks (SHA-3 is good at that)
-* Implemented: Faster operations with 64-bit PHP using the native integer type
+* Optimize even more for speed, while defending against timing attacks (SHA-3 is good at that)
 
 
 ## Legal
