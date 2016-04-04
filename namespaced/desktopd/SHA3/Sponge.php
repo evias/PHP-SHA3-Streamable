@@ -228,6 +228,7 @@ class Sponge {
 			$lanes = array_values (unpack ($pack, $state));
 			
 			// Notice no function calls inside the loop
+			// list(), array() and unset () are not functions
 			for ($round = 0; $round < 24; ++$round) {
 				// θ step
 				$C = array (
