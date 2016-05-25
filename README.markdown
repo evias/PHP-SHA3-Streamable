@@ -6,6 +6,7 @@
 * Namespaced class: PHP 5.3 or later
 * Acceleration supported: PHP 5.6.3 or later (64 bit)
 * Best performance with PHP 7.0 or later
+* The fastest known implementation in pure PHP: faster than `https://github.com/0xbb/php-sha3` (PHP 5.6.3 or PHP 7.0)
 
 
 ## Features

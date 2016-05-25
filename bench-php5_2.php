@@ -29,7 +29,7 @@ kF6HRUL7DlKQf3p1icoesdP/b2owW1NorvOW4Nbpx9/uQ0aO6ghPxnopFALkyBt78oqnSNS3Wk/+
 
 
 $sponge = SHA3::init (SHA3::SHA3_512);
-$sponge->absorb ($DATA);
+$sponge->absorb (base64_decode ($DATA));
 $hash = $sponge->squeeze ();
 echo bin2hex ($hash);
 echo PHP_EOL;
