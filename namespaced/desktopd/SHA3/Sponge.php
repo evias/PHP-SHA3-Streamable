@@ -145,7 +145,7 @@ class Sponge {
 	private $native64bit = false;
 	
 	
-	protected function __construct ($rate, $capacity, $suffix, $length = 0) {
+	public function __construct ($rate, $capacity, $suffix, $length = 0) {
 		if (1600 != ($rate + $capacity)) {
 			throw new Error ('Invalid parameters');
 		}

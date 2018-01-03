@@ -140,7 +140,7 @@ class SHA3 {
 	private $outputBuffer = '';
 	
 	
-	protected function __construct ($rate, $capacity, $suffix, $length = 0) {
+	public function __construct ($rate, $capacity, $suffix, $length = 0) {
 		if (1600 != ($rate + $capacity)) {
 			throw new Error ('Invalid parameters');
 		}
@@ -216,8 +216,8 @@ class SHA3 {
 					^ $lanes[$x + 15] ^ $lanes[$x + 20];
 			}
 			for ($x = 0; $x < 5; $x++) {
-				$D = $C[($x + 4) % 5] ^ self::rotL64 ($C[($x + 1) % 5], 1);
-				//$D = $C[($x + 4) % 5] ^ self::rotL64One ($C[($x + 1) % 5]);
+				//$D = $C[($x + 4) % 5] ^ self::rotL64 ($C[($x + 1) % 5], 1);
+				$D = $C[($x + 4) % 5] ^ self::rotL64One ($C[($x + 1) % 5]);
 				for ($y = 0; $y < 5; $y++) {
 					$idx = $x + 5 * $y; // x, y
 					$lanes[$idx] = $lanes[$idx] ^ $D;
@@ -272,10 +272,15 @@ class SHA3 {
 		return implode ($lanes);
 	}
 	
+	protected static function rotL64_64 ($n, $offset) {
+		return ($n << $offset) & ($n >> (64 - $offset));
+	}
+	
 	/**
 		64-bit bitwise left rotation (Little endian)
 	*/
 	protected static function rotL64 ($n, $offset) {
+		
 		//$n = (binary) $n;
 		//$offset = ((int) $offset) % 64;
 		//if (8 != strlen ($n)) throw new Exception ('Invalid number');
