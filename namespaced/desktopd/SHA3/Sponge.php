@@ -4,7 +4,7 @@ vim: ts=4 noet ai */
 /**
 	Streamable SHA-3 for PHP 5.2+, with no lib/ext dependencies!
 
-	Copyright © 2016  Desktopd Developers
+	Copyright © 2018  Desktopd Developers
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU Lesser General Public License as published by

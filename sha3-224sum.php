@@ -5,7 +5,7 @@ vim: ts=4 noet ai */
 /**
 	sha3-224sum - compute SHA3-224 message digest (command-line tool)
 
-	Copyright © 2016  Desktopd Developers
+	Copyright © 2018  Desktopd Developers
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -24,17 +24,19 @@ vim: ts=4 noet ai */
 	@file
 */
 
+use desktopd\SHA3\Sponge as SHA3;
+require_once __DIR__ . '/namespaced/desktopd/SHA3/Sponge.php';
 
 $progName = 'sha3-224sum';
-$version = '1.0';
-$copyrightYear = '2016';
+$version = '2.0';
+$copyrightYear = '2018';
 $digestName = 'SHA3-224';
 $bitNum = '224';
 
 $args = isset ($argv) ? array_slice ($argv, 1) : array ();
 $binary = false;
 
-require_once dirname (__FILE__) . '/SHA3.php';
+//require_once dirname (__FILE__) . '/SHA3.php';
 
 function hashFile ($path = null) {
 	global $progName;
