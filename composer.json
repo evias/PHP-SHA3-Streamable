@@ -1,0 +1,35 @@
+{
+	"name": "desktopd/php-sha3-streamable",
+	"type": "library",
+	"description": "Streamable Keccak SHA-3 implementation",
+	"authors": [
+        {
+            "name": "Grégory Saive",
+            "email": "greg@evias.be"
+        },
+        {
+            "name": "DesktopD Project",
+            "email": "info@desktopd.eu.org"
+        }
+    ],
+    "repositories": [],
+    "require": {
+        "php": ">=5.2"
+    },
+    "require-dev": {},
+    "autoload": {
+        "classmap": [],
+        "files": [
+            "src/SHA3.php"
+        ],
+        "psr-4": {
+            "desktopd\\SHA3\\": "namespaced/desktopd/SHA3/"
+        }
+    },
+    "autoload-dev": {
+        "files": [],
+        "classmap": []
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

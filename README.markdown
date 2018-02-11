@@ -31,6 +31,8 @@ PHP's notable slowness. PHP is only fast when your program is trivial or I/O-bou
 
 
 ## Usage
+This package can now also be installed through composer with the name `desktopd/php-sha3-streamable` and repository url: `https://github.com/evias/PHP-SHA3-Streamable`.
+
 Namespaced class `desktopd\SHA3\Sponge` is available at the `namespaced/` directory of this repository. **This is the optimized version.**
 
         <?php
